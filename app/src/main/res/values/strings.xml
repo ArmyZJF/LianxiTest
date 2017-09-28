@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Lianxi</string>
+    <string name="start_service">start service</string>
+    <string name="stop_service">Stop service</string>
+    <string name="bind_service">bind service</string>
+    <string name="unbind_service">unbind_service</string>
+    <string name="start_intentservice">Start IntentService</string>
+</resources>
