@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private void initLocation() {
         LocationClientOption option = new LocationClientOption();
         option.setScanSpan(5000);
+        //三种模式可选Hight_Accurary/Battery_Saving和Decice_Sensors；高进度，节电模式，传感器模式
+       // option.setLocationMode(LocationClientOption.LocationMode.Device_Sensors);
         mLocationClient.setLocOption(option);
     }
 
@@ -93,8 +95,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceiveLocation(BDLocation bdLocation) {
             StringBuilder currentPosition = new StringBuilder();
-            currentPosition.append("纬度: ").append(bdLocation.getLatitude()).append("/n");
-            currentPosition.append("经线: ").append(bdLocation.getLongitude()).append("/n");
+            currentPosition.append("纬度: ").append(bdLocation.getLatitude()).append("\n");
+            currentPosition.append("经线: ").append(bdLocation.getLongitude()).append("\n");
+            currentPosition.append("国家: ").append(bdLocation.getCountry()).append("\n");
+            currentPosition.append("省份: ").append(bdLocation.getProvince()).append("\n");
+            currentPosition.append("市: ").append(bdLocation.getCity()).append("\n");
+            currentPosition.append("区: ").append(bdLocation.getDistrict()).append("\n");
+            currentPosition.append("街道: ").append(bdLocation.getStreet()).append("\n");
             currentPosition.append("定位方式: ");
             if (bdLocation.getLocType() == BDLocation.TypeGpsLocation){
                 currentPosition.append("GPS");
