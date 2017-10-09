@@ -16,6 +16,13 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
+import com.baidu.mapapi.SDKInitializer;
+import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.MapStatusUpdate;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
+import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,14 +31,27 @@ public class MainActivity extends AppCompatActivity {
 
     private LocationClient mLocationClient;
     private TextView positionText;
+    private MapView mapView;
+    private BaiduMap baiduMap;
+    private boolean isFirstLocate = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mLocationClient = new LocationClient(getApplicationContext());
         mLocationClient.registerLocationListener(new MyLocationListener());
+        //让地图显示出来.首先调用SDKInitializer的initialize()方法进行初始化操作
+        SDKInitializer.initialize(getApplicationContext());
+
         setContentView(R.layout.activity_main);
         positionText = (TextView) findViewById(R.id.position_text_view);
+
+        mapView = (MapView) findViewById(R.id.bmapView);
+        //实现移动到我的位置功能。百度LBS SDK的api提供一个BaiduMap类，它是地图的总控制器
+        baiduMap = mapView.getMap();
+        //开启设备位置图标功能
+        baiduMap.setMyLocationEnabled(true);
+
         List<String> permissionList = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -67,6 +87,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         mLocationClient.stop();
+        mapView.onDestroy();
+        //关闭显示当前位置图标功能
+        baiduMap.setMyLocationEnabled(false);
     }
 
     @Override
@@ -109,6 +132,42 @@ public class MainActivity extends AppCompatActivity {
                 currentPosition.append("网络");
             }
             positionText.setText(currentPosition);
+
+            //将location传入navigateTo方法中
+            if(bdLocation.getLocType() == BDLocation.TypeGpsLocation || bdLocation.getLocType() == BDLocation.TypeNetWorkLocation){
+                navigateTo(bdLocation);
+            }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //对mapView资源进行管理，以保证资源能够及时得到释放
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+    //定位到自己位置
+    private void navigateTo(BDLocation location){
+        //变量作用是为了防止多次调用animateMapStatus方法，因为将地图移动到设备当前位置只需要在程序第一次调用一次就可以了
+        if (isFirstLocate){
+            LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
+            MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(ll);
+            baiduMap.animateMapStatus(update);
+            update = MapStatusUpdateFactory.zoomTo(16f);
+            baiduMap.animateMapStatus(update);
+            isFirstLocate = false;
+        }
+        //百度LBS SDK提供的MyLocationData.Builder类，用来封装设备所在位置
+        MyLocationData.Builder locationBuilder = new MyLocationData.Builder();
+        locationBuilder.latitude(location.getLatitude());
+        locationBuilder.longitude(location.getLongitude());
+        MyLocationData locationData = locationBuilder.build();
+        baiduMap.setMyLocationData(locationData);
     }
 }
