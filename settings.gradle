@@ -1,1 +1,1 @@
-include ':app', ':mylibrary', ':test', ':servicebestpractice'
+include ':app', ':mylibrary', ':test', ':servicebestpractice', ':baidutest'
